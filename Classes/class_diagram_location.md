@@ -19,16 +19,8 @@ title: Location Class
          + addNPC(npc: NPC): void
         }
 ```
-import java.util.ArrayList;
-import java.util.List;
 
-public class Location {
-    private String name;
-    private String description;
-    private List<Enemy> enemyList;
-    private List<Item> itemList;
-    private List<Quest> questList;
-    private List<NPC> npcList;
+
 
     public Location(String name, String description) {
         this.name = name;
