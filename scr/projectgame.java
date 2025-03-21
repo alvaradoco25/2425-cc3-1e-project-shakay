@@ -1,35 +1,53 @@
 import javax.swing.*;
 import java.awt.*;
 
-public class WindowOptions extends JFrame {
-    public WindowOptions() {
-        setTitle("My First Window");
+public class LoginWindow extends JFrame {
+    public LoginWindow() {
+        setTitle("Login Form");
         setSize(400, 200);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new GridBagLayout());
 
-        JButton hideButton = new JButton("Hide");
-        JButton minimizeButton = new JButton("Minimize");
-        JButton exitButton = new JButton("Exit");
+        JLabel emailLabel = new JLabel("Email:");
+        JTextField emailField = new JTextField(15);
+
+        JLabel passwordLabel = new JLabel("Password:");
+        JPasswordField passwordField = new JPasswordField(15);
+
+        JButton enterButton = new JButton("Enter");
+        enterButton.addActionListener(e -> {
+            String email = emailField.getText();
+            String password = new String(passwordField.getPassword());
+            JOptionPane.showMessageDialog(this, "Email: " + email + "\nPassword: " + password);
+        });
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
+
         gbc.gridx = 0;
         gbc.gridy = 0;
-        add(hideButton, gbc);
+        add(emailLabel, gbc);
 
         gbc.gridx = 1;
-        add(minimizeButton, gbc);
+        add(emailField, gbc);
 
-        gbc.gridx = 2;
-        add(exitButton, gbc);
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        add(passwordLabel, gbc);
+
+        gbc.gridx = 1;
+        add(passwordField, gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = 2;
+        add(enterButton, gbc);
     }
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            WindowOptions window = new WindowOptions();
-            window.setVisible(true);
+            LoginWindow login = new LoginWindow();
+            login.setVisible(true);
         });
     }
 }
