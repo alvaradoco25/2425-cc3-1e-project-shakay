@@ -9,12 +9,15 @@ public class LoginWindow extends JFrame {
         setLocationRelativeTo(null);
         setLayout(new GridBagLayout());
 
-        // Labels and Fields
+        
         JLabel signinLabel = new JLabel("SignIn");
-        JTextField signinField = new JTextField(15); // Corrected from JLabelField to JTextField
-
-        JLabel signupLabel = new JLabel("SignUp");
-        JTextField signupField = new JTextField(15); // Corrected from JtextField to JTextField
+        JTextField signinField = new JTextField(15); 
+        
+	JLabel signupLabel = new JLabel("SignUp");
+        JTextField signupField = new JTextField(15); 
+	
+	JLabel guestLabel = new JLabel("Guest");
+	JTextField guestField = new JTextField(15);
 
         JLabel emailLabel = new JLabel("Email:");
         JTextField emailField = new JTextField(15);
@@ -22,11 +25,12 @@ public class LoginWindow extends JFrame {
         JLabel passwordLabel = new JLabel("Password:");
         JPasswordField passwordField = new JPasswordField(15);
 
-        // Buttons
+        JButton guestButton = new JButton("Guest");
         JButton signInButton = new JButton("SignIn");
         JButton signUpButton = new JButton("SignUp");
+	
 
-        // SignIn button action
+        
         signInButton.addActionListener(e -> {
             String signin = signinField.getText();
             String email = emailField.getText();
@@ -34,7 +38,7 @@ public class LoginWindow extends JFrame {
             JOptionPane.showMessageDialog(this, "SignIn\nEmail: " + email + "\nPassword: " + password);
         });
 
-        // SignUp button action
+       
         signUpButton.addActionListener(e -> {
             String signup = signupField.getText();
             String email = emailField.getText();
@@ -42,7 +46,7 @@ public class LoginWindow extends JFrame {
             JOptionPane.showMessageDialog(this, "SignUp\nEmail: " + email + "\nPassword: " + password);
         });
 
-        // GridBagConstraints setup
+       
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);  // Spacing between components
 
@@ -54,7 +58,7 @@ public class LoginWindow extends JFrame {
         gbc.gridx = 1;
         add(signinField, gbc);
 
-        // Email Label and Field
+        
         gbc.gridx = 0;
         gbc.gridy = 1;
         add(emailLabel, gbc);
@@ -62,7 +66,7 @@ public class LoginWindow extends JFrame {
         gbc.gridx = 1;
         add(emailField, gbc);
 
-        // Password Label and Field
+        
         gbc.gridx = 0;
         gbc.gridy = 2;
         add(passwordLabel, gbc);
@@ -70,15 +74,22 @@ public class LoginWindow extends JFrame {
         gbc.gridx = 1;
         add(passwordField, gbc);
 
-        // SignIn Button
+       
         gbc.gridx = 1;
         gbc.gridy = 3;
         add(signInButton, gbc);
 
-        // SignUp Button
+        
         gbc.gridx = 1;
         gbc.gridy = 4;
         add(signUpButton, gbc);
+
+	
+	gbc.gridx = 1;
+	gbc.gridy = ;
+        add(guestButton, gbc);
+
+
     }
 
     public static void main(String[] args) {
