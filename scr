@@ -1,100 +1,70 @@
 import javax.swing.*;
- import java.awt.*;
- 
- public class LoginWindow extends JFrame {
-     public LoginWindow() {
-         setTitle("My First Login");
-         setSize(450, 250);
-         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-         setLocationRelativeTo(null);
-         setLayout(new GridBagLayout());
- 
-         
-         JLabel signinLabel = new JLabel("SignIn");
-         JTextField signinField = new JTextField(15); 
-         
- 	JLabel signupLabel = new JLabel("SignUp");
-         JTextField signupField = new JTextField(15); 
- 	
- 	JLabel guestLabel = new JLabel("Guest");
- 	JTextField guestField = new JTextField(15);
- 
-         JLabel emailLabel = new JLabel("Email:");
-         JTextField emailField = new JTextField(15);
- 
-         JLabel passwordLabel = new JLabel("Password:");
-         JPasswordField passwordField = new JPasswordField(15);
- 
-         JButton guestButton = new JButton("Guest");
-         JButton signInButton = new JButton("SignIn");
-         JButton signUpButton = new JButton("SignUp");
- 	
- 
-         
-         signInButton.addActionListener(e -> {
-             String signin = signinField.getText();
-             String email = emailField.getText();
-             String password = new String(passwordField.getPassword());
-             JOptionPane.showMessageDialog(this, "SignIn\nEmail: " + email + "\nPassword: " + password);
-         });
- 
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+public class HomeScreen {
+    public static void main(String[] args) {
+        // Create main frame
+        JFrame frame = new JFrame("Home - My Notes");
+        frame.setSize(400, 600);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setLayout(new BorderLayout());
         
-         signUpButton.addActionListener(e -> {
-             String signup = signupField.getText();
-             String email = emailField.getText();
-             String password = new String(passwordField.getPassword());
-             JOptionPane.showMessageDialog(this, "SignUp\nEmail: " + email + "\nPassword: " + password);
-         });
- 
+        // Title Label
+        JLabel titleLabel = new JLabel("Hello, My Notes", SwingConstants.LEFT);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
-         GridBagConstraints gbc = new GridBagConstraints();
-         gbc.insets = new Insets(10, 10, 10, 10);  // Spacing between components
- 
-         // SignIn Label and Field
-         gbc.gridx = 0;
-         gbc.gridy = 0;
-         add(signinLabel, gbc);
- 
-         gbc.gridx = 1;
-         add(signinField, gbc);
- 
-         
-         gbc.gridx = 0;
-         gbc.gridy = 1;
-         add(emailLabel, gbc);
- 
-         gbc.gridx = 1;
-         add(emailField, gbc);
- 
-         
-         gbc.gridx = 0;
-         gbc.gridy = 2;
-         add(passwordLabel, gbc);
- 
-         gbc.gridx = 1;
-         add(passwordField, gbc);
- 
+        // Search Bar
+        JTextField searchField = new JTextField("Search Here");
+        searchField.setPreferredSize(new Dimension(300, 30));
         
-         gbc.gridx = 1;
-         gbc.gridy = 3;
-         add(signInButton, gbc);
- 
-         
-         gbc.gridx = 1;
-         gbc.gridy = 4;
-         add(signUpButton, gbc);
- 
- 	
- 	gbc.gridx = 1;
-         add(guestButton, gbc);
- 
- 
-     }
- 
-     public static void main(String[] args) {
-         SwingUtilities.invokeLater(() -> {
-             LoginWindow login = new LoginWindow();
-             login.setVisible(true);
-         });
-     }
- }
+        // Panel for title and search
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.add(titleLabel, BorderLayout.NORTH);
+        topPanel.add(searchField, BorderLayout.SOUTH);
+        
+        // Notes List
+        DefaultListModel<String> notesModel = new DefaultListModel<>();
+        notesModel.addElement("Task Management App UI Design\n28 May\nJust Now");
+        notesModel.addElement("Shopping List\n12 May\n1h ago");
+        
+        JList<String> notesList = new JList<>(notesModel);
+        notesList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        notesList.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        
+        // Scroll Pane for Notes List
+        JScrollPane scrollPane = new JScrollPane(notesList);
+        
+        // Floating Action Button (FAB) for adding notes
+        JButton addButton = new JButton("+");
+        addButton.setFont(new Font("Arial", Font.BOLD, 20));
+        addButton.setBackground(Color.BLUE);
+        addButton.setForeground(Color.WHITE);
+        addButton.setFocusPainted(false);
+        addButton.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        
+        // Add Button Action Listener
+        addButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String newNote = JOptionPane.showInputDialog(frame, "Enter your note:", "New Note", JOptionPane.PLAIN_MESSAGE);
+                if (newNote != null && !newNote.trim().isEmpty()) {
+                    notesModel.addElement(newNote + "\n" + "New Note Added");
+                }
+            }
+        });
+        
+        JPanel bottomPanel = new JPanel();
+        bottomPanel.add(addButton);
+        
+        // Add components to frame
+        frame.add(topPanel, BorderLayout.NORTH);
+        frame.add(scrollPane, BorderLayout.CENTER);
+        frame.add(bottomPanel, BorderLayout.SOUTH);
+        
+        // Make frame visible
+        frame.setVisible(true);
+    }
+}
