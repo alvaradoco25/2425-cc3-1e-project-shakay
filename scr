@@ -2,14 +2,84 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.HashMap;
+import java.util.Map;
 
 public class HomeScreen {
+    private static JFrame frame;
+    private static CardLayout cardLayout;
+    private static JPanel cardPanel;
+    private static Map<String, String> noteDetails = new HashMap<>();
+    
     public static void main(String[] args) {
+        // Initialize some sample note details
+        noteDetails.put("Task Management App UI Design\n28 May\nJust Now", 
+            "Design the UI for the new task management app.\n\n- Create wireframes\n- Choose color scheme\n- Design icons");
+        noteDetails.put("Shopping List\n12 May\n1h ago", 
+            "Groceries to buy:\n\n- Milk\n- Eggs\n- Bread\n- Fruits\n- Vegetables");
+
         // Create main frame
-        JFrame frame = new JFrame("Home - My Notes");
+        frame = new JFrame("My Notes App");
         frame.setSize(400, 600);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setLayout(new BorderLayout());
+        
+        // Create card layout for multiple screens
+        cardLayout = new CardLayout();
+        cardPanel = new JPanel(cardLayout);
+        
+        // Create different screens
+        createLoginScreen();
+        createHomeScreen();
+        createNoteDetailScreen();
+        
+        frame.add(cardPanel);
+        frame.setVisible(true);
+    }
+    
+    private static void createLoginScreen() {
+        JPanel loginPanel = new JPanel(new BorderLayout());
+        loginPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        
+        // Title
+        JLabel titleLabel = new JLabel("Welcome to My Notes", SwingConstants.CENTER);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        
+        // Login Form
+        JPanel formPanel = new JPanel(new GridLayout(3, 1, 10, 10));
+        
+        JTextField usernameField = new JTextField();
+        usernameField.setBorder(BorderFactory.createTitledBorder("Username"));
+        
+        JPasswordField passwordField = new JPasswordField();
+        passwordField.setBorder(BorderFactory.createTitledBorder("Password"));
+        
+        JButton loginButton = new JButton("Login");
+        loginButton.setBackground(new Color(70, 130, 180));
+        loginButton.setForeground(Color.WHITE);
+        loginButton.setFont(new Font("Arial", Font.BOLD, 16));
+        
+        loginButton.addActionListener(e -> {
+            // Simple validation - in real app, you'd have proper authentication
+            if (usernameField.getText().isEmpty() || passwordField.getPassword().length == 0) {
+                JOptionPane.showMessageDialog(frame, "Please enter both username and password", 
+                    "Login Error", JOptionPane.ERROR_MESSAGE);
+            } else {
+                cardLayout.show(cardPanel, "Home");
+            }
+        });
+        
+        formPanel.add(usernameField);
+        formPanel.add(passwordField);
+        formPanel.add(loginButton);
+        
+        loginPanel.add(titleLabel, BorderLayout.NORTH);
+        loginPanel.add(formPanel, BorderLayout.CENTER);
+        
+        cardPanel.add(loginPanel, "Login");
+    }
+    
+    private static void createHomeScreen() {
+        JPanel homePanel = new JPanel(new BorderLayout());
         
         // Title Label
         JLabel titleLabel = new JLabel("Hello, My Notes", SwingConstants.LEFT);
@@ -34,13 +104,36 @@ public class HomeScreen {
         notesList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         notesList.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
+        // Add double-click listener to view note details
+        notesList.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                if (evt.getClickCount() == 2) {
+                    String selectedNote = notesList.getSelectedValue();
+                    if (selectedNote != null) {
+                        // Set the note content in the detail screen before showing it
+                        JTextArea noteContentArea = (JTextArea)((JScrollPane)cardPanel.getComponent(2))
+                            .getViewport().getView();
+                        noteContentArea.setText(noteDetails.getOrDefault(selectedNote, "No content available"));
+                        cardLayout.show(cardPanel, "NoteDetail");
+                    }
+                }
+            }
+        });
+        
         // Scroll Pane for Notes List
         JScrollPane scrollPane = new JScrollPane(notesList);
+        
+        // Bottom panel with buttons
+        JPanel bottomPanel = new JPanel(new BorderLayout());
+        
+        // Logout button
+        JButton logoutButton = new JButton("Logout");
+        logoutButton.addActionListener(e -> cardLayout.show(cardPanel, "Login"));
         
         // Floating Action Button (FAB) for adding notes
         JButton addButton = new JButton("+");
         addButton.setFont(new Font("Arial", Font.BOLD, 20));
-        addButton.setBackground(Color.BLUE);
+        addButton.setBackground(new Color(70, 130, 180));
         addButton.setForeground(Color.WHITE);
         addButton.setFocusPainted(false);
         addButton.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -49,22 +142,51 @@ public class HomeScreen {
         addButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String newNote = JOptionPane.showInputDialog(frame, "Enter your note:", "New Note", JOptionPane.PLAIN_MESSAGE);
-                if (newNote != null && !newNote.trim().isEmpty()) {
-                    notesModel.addElement(newNote + "\n" + "New Note Added");
+                String newNoteTitle = JOptionPane.showInputDialog(frame, "Enter note title:", "New Note", JOptionPane.PLAIN_MESSAGE);
+                if (newNoteTitle != null && !newNoteTitle.trim().isEmpty()) {
+                    String newNoteContent = JOptionPane.showInputDialog(frame, "Enter note content:", "Note Content", JOptionPane.PLAIN_MESSAGE);
+                    String noteWithDate = newNoteTitle + "\n" + java.time.LocalDate.now() + "\nJust Now";
+                    notesModel.addElement(noteWithDate);
+                    noteDetails.put(noteWithDate, newNoteContent != null ? newNoteContent : "");
                 }
             }
         });
         
-        JPanel bottomPanel = new JPanel();
-        bottomPanel.add(addButton);
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        buttonPanel.add(addButton);
         
-        // Add components to frame
-        frame.add(topPanel, BorderLayout.NORTH);
-        frame.add(scrollPane, BorderLayout.CENTER);
-        frame.add(bottomPanel, BorderLayout.SOUTH);
+        bottomPanel.add(logoutButton, BorderLayout.WEST);
+        bottomPanel.add(buttonPanel, BorderLayout.EAST);
         
-        // Make frame visible
-        frame.setVisible(true);
+        // Add components to home panel
+        homePanel.add(topPanel, BorderLayout.NORTH);
+        homePanel.add(scrollPane, BorderLayout.CENTER);
+        homePanel.add(bottomPanel, BorderLayout.SOUTH);
+        
+        cardPanel.add(homePanel, "Home");
+    }
+    
+    private static void createNoteDetailScreen() {
+        JPanel detailPanel = new JPanel(new BorderLayout());
+        
+        // Back button
+        JButton backButton = new JButton("← Back");
+        backButton.addActionListener(e -> cardLayout.show(cardPanel, "Home"));
+        
+        // Note content area
+        JTextArea noteContentArea = new JTextArea();
+        noteContentArea.setEditable(false);
+        noteContentArea.setLineWrap(true);
+        noteContentArea.setWrapStyleWord(true);
+        noteContentArea.setFont(new Font("Arial", Font.PLAIN, 16));
+        noteContentArea.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        
+        JScrollPane contentScroll = new JScrollPane(noteContentArea);
+        
+        // Add components to detail panel
+        detailPanel.add(backButton, BorderLayout.NORTH);
+        detailPanel.add(contentScroll, BorderLayout.CENTER);
+        
+        cardPanel.add(detailPanel, "NoteDetail");
     }
 }
