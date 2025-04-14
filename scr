@@ -1,192 +1,591 @@
+package com.mycompany.shakayproject;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
-public class HomeScreen {
+public class ShakayProject {
+    // Color Scheme
+    private static final Color DARK_BLUE = new Color(0, 51, 102);
+    private static final Color MEDIUM_BLUE = new Color(0, 102, 204);
+    private static final Color LIGHT_BLUE = new Color(173, 216, 230);
+    private static final Color DARK_BLACK = new Color(30, 30, 30);
+    private static final Color LIGHT_BLACK = new Color(50, 50, 50);
+    private static final Color WHITE = new Color(255, 255, 255);
+    private static final Color SELECTION_BLUE = new Color(0, 122, 204);
+
+    // App Components
     private static JFrame frame;
     private static CardLayout cardLayout;
     private static JPanel cardPanel;
-    private static Map<String, String> noteDetails = new HashMap<>();
+    private static DefaultListModel<String> teamsModel = new DefaultListModel<>();
+    private static DefaultListModel<String> notesModel = new DefaultListModel<>();
+    private static Map<String, Team> teams = new HashMap<>();
+    private static Map<String, User> users = new HashMap<>();
+    private static User currentUser = null;
+    private static Team currentTeam = null;
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            initializeSampleNotes();
+            initializeSampleData();
             initializeUI();
         });
     }
 
-    private static void initializeSampleNotes() {
-        noteDetails.put(
-                "Task Management App UI Design\n28 May\nJust Now",
-                "Design the UI for the new task management app.\n\n- Create wireframes\n- Choose color scheme\n- Design icons"
-        );
-        noteDetails.put(
-                "Shopping List\n12 May\n1h ago",
-                "Groceries to buy:\n\n- Milk\n- Eggs\n- Bread\n- Fruits\n- Vegetables"
-        );
+    // Data Classes
+    static class User {
+        String username;
+        String password;
+        List<String> teamIds;
+
+        public User(String username, String password) {
+            this.username = username;
+            this.password = password;
+            this.teamIds = new ArrayList<>();
+        }
+    }
+
+    static class Team {
+        String id;
+        String name;
+        List<String> memberIds;
+        Map<String, Note> notes;
+
+        public Team(String name) {
+            this.id = "team_" + System.currentTimeMillis();
+            this.name = name;
+            this.memberIds = new ArrayList<>();
+            this.notes = new HashMap<>();
+        }
+    }
+
+    static class Note {
+        String id;
+        String title;
+        String content;
+        String author;
+        String lastModified;
+        List<String> sharedWith;
+
+        public Note(String title, String content, String author) {
+            this.id = "note_" + System.currentTimeMillis();
+            this.title = title;
+            this.content = content;
+            this.author = author;
+            this.lastModified = LocalDate.now().format(DateTimeFormatter.ofPattern("dd MMM")) + " " + 
+                             java.time.LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm"));
+            this.sharedWith = new ArrayList<>();
+        }
+    }
+
+    private static void initializeSampleData() {
+        // Create sample users
+        User admin = new User("admin", "admin123");
+        User user1 = new User("user1", "password1");
+        User user2 = new User("user2", "password2");
+        
+        users.put(admin.username, admin);
+        users.put(user1.username, user1);
+        users.put(user2.username, user2);
+
+        // Create sample teams
+        Team devTeam = new Team("Development Team");
+        Team marketing = new Team("Marketing Team");
+        
+        // Add members to teams
+        devTeam.memberIds.add(admin.username);
+        devTeam.memberIds.add(user1.username);
+        marketing.memberIds.add(admin.username);
+        marketing.memberIds.add(user2.username);
+        
+        // Add teams to users
+        admin.teamIds.add(devTeam.id);
+        admin.teamIds.add(marketing.id);
+        user1.teamIds.add(devTeam.id);
+        user2.teamIds.add(marketing.id);
+        
+        // Add sample notes
+        Note devNote = new Note("Project Timeline", "Finish UI by Friday\nBackend by next week", admin.username);
+        Note marketingNote = new Note("Campaign Ideas", "1. Social media blitz\n2. Email campaign", user2.username);
+        
+        devTeam.notes.put(devNote.id, devNote);
+        marketing.notes.put(marketingNote.id, marketingNote);
+        
+        // Store teams
+        teams.put(devTeam.id, devTeam);
+        teams.put(marketing.id, marketing);
     }
 
     private static void initializeUI() {
-        frame = new JFrame("My Notes App");
-        frame.setSize(400, 600);
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            setUIManagerProperties();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        frame = new JFrame("Team Notes App");
+        frame.setSize(800, 600);
         frame.setLocationRelativeTo(null);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.getContentPane().setBackground(DARK_BLACK);
 
         cardLayout = new CardLayout();
         cardPanel = new JPanel(cardLayout);
+        cardPanel.setBackground(DARK_BLACK);
 
         createLoginScreen();
-        createHomeScreen();
+        createTeamSelectionScreen();
+        createNotesScreen();
         createNoteDetailScreen();
+        createTeamManagementScreen();
 
         frame.add(cardPanel);
         frame.setVisible(true);
+    }
+
+    private static void setUIManagerProperties() {
+        UIManager.put("Panel.background", DARK_BLACK);
+        UIManager.put("Button.background", MEDIUM_BLUE);
+        UIManager.put("Button.foreground", WHITE);
+        UIManager.put("TextField.background", LIGHT_BLACK);
+        UIManager.put("TextField.foreground", WHITE);
+        UIManager.put("TextField.caretForeground", WHITE);
+        UIManager.put("TextArea.background", LIGHT_BLACK);
+        UIManager.put("TextArea.foreground", WHITE);
+        UIManager.put("TextArea.caretForeground", WHITE);
+        UIManager.put("List.background", LIGHT_BLACK);
+        UIManager.put("List.foreground", WHITE);
+        UIManager.put("List.selectionBackground", SELECTION_BLUE);
+        UIManager.put("List.selectionForeground", WHITE);
+        UIManager.put("ScrollPane.background", DARK_BLACK);
+        UIManager.put("ScrollPane.border", BorderFactory.createEmptyBorder());
+        UIManager.put("Label.foreground", WHITE);
+        UIManager.put("OptionPane.background", DARK_BLACK);
+        UIManager.put("OptionPane.messageForeground", WHITE);
     }
 
     private static void createLoginScreen() {
         JPanel loginPanel = new JPanel();
         loginPanel.setLayout(new BoxLayout(loginPanel, BoxLayout.Y_AXIS));
         loginPanel.setBorder(BorderFactory.createEmptyBorder(40, 40, 40, 40));
+        loginPanel.setBackground(DARK_BLACK);
 
-        JLabel titleLabel = new JLabel("Welcome to My Notes", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 22));
+        JLabel titleLabel = new JLabel("Team Notes App", SwingConstants.CENTER);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        titleLabel.setForeground(MEDIUM_BLUE);
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         JTextField usernameField = new JTextField();
-        usernameField.setBorder(BorderFactory.createTitledBorder("Username"));
+        usernameField.setBorder(BorderFactory.createTitledBorder(
+            BorderFactory.createLineBorder(MEDIUM_BLUE), "Username"));
         usernameField.setMaximumSize(new Dimension(300, 50));
+        usernameField.setBackground(LIGHT_BLACK);
+        usernameField.setForeground(WHITE);
 
         JPasswordField passwordField = new JPasswordField();
-        passwordField.setBorder(BorderFactory.createTitledBorder("Password"));
+        passwordField.setBorder(BorderFactory.createTitledBorder(
+            BorderFactory.createLineBorder(MEDIUM_BLUE), "Password"));
         passwordField.setMaximumSize(new Dimension(300, 50));
+        passwordField.setBackground(LIGHT_BLACK);
+        passwordField.setForeground(WHITE);
 
-        JButton loginButton = new JButton("Login");
-        loginButton.setBackground(new Color(70, 130, 180));
-        loginButton.setForeground(Color.WHITE);
-        loginButton.setFont(new Font("Arial", Font.BOLD, 16));
-        loginButton.setFocusPainted(false);
+        JButton loginButton = createStyledButton("Login", MEDIUM_BLUE);
         loginButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         loginButton.setMaximumSize(new Dimension(300, 40));
 
+        JButton registerButton = createStyledButton("Register", DARK_BLUE);
+        registerButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        registerButton.setMaximumSize(new Dimension(300, 40));
+
         loginButton.addActionListener(e -> {
-            if (usernameField.getText().trim().isEmpty() || passwordField.getPassword().length == 0) {
-                JOptionPane.showMessageDialog(frame, "Please enter both username and password", "Login Error", JOptionPane.ERROR_MESSAGE);
+            String username = usernameField.getText().trim();
+            String password = new String(passwordField.getPassword());
+            
+            if (username.isEmpty() || password.isEmpty()) {
+                showMessage("Please enter both username and password", "Login Error", JOptionPane.ERROR_MESSAGE);
+            } else if (users.containsKey(username) && users.get(username).password.equals(password)) {
+                currentUser = users.get(username);
+                refreshTeamsList();
+                cardLayout.show(cardPanel, "Teams");
             } else {
-                cardLayout.show(cardPanel, "Home");
+                showMessage("Invalid username or password", "Login Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 
-        loginPanel.add(titleLabel);
-        loginPanel.add(Box.createRigidArea(new Dimension(0, 20)));
-        loginPanel.add(usernameField);
-        loginPanel.add(Box.createRigidArea(new Dimension(0, 10)));
-        loginPanel.add(passwordField);
-        loginPanel.add(Box.createRigidArea(new Dimension(0, 20)));
-        loginPanel.add(loginButton);
-
-        cardPanel.add(loginPanel, "Login");
-    }
-
-    private static void createHomeScreen() {
-        JPanel homePanel = new JPanel(new BorderLayout());
-
-        JLabel titleLabel = new JLabel("Hello, My Notes", SwingConstants.LEFT);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        titleLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
-        JTextField searchField = new JTextField("Search Here");
-        searchField.setPreferredSize(new Dimension(300, 30));
-
-        JPanel topPanel = new JPanel(new BorderLayout());
-        topPanel.add(titleLabel, BorderLayout.NORTH);
-        topPanel.add(searchField, BorderLayout.SOUTH);
-
-        DefaultListModel<String> notesModel = new DefaultListModel<>();
-        noteDetails.keySet().forEach(notesModel::addElement);
-
-        JList<String> notesList = new JList<>(notesModel);
-        notesList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        notesList.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
-        notesList.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent evt) {
-                if (evt.getClickCount() == 2) {
-                    String selectedNote = notesList.getSelectedValue();
-                    if (selectedNote != null) {
-                        showNoteDetail(selectedNote);
+        registerButton.addActionListener(e -> {
+            String username = JOptionPane.showInputDialog(frame, "Enter username:", "Register", JOptionPane.PLAIN_MESSAGE);
+            if (username != null && !username.trim().isEmpty()) {
+                if (users.containsKey(username)) {
+                    showMessage("Username already exists", "Registration Error", JOptionPane.ERROR_MESSAGE);
+                } else {
+                    String password = JOptionPane.showInputDialog(frame, "Enter password:", "Register", JOptionPane.PLAIN_MESSAGE);
+                    if (password != null && !password.trim().isEmpty()) {
+                        users.put(username, new User(username, password));
+                        showMessage("Registration successful!", "Registration", JOptionPane.INFORMATION_MESSAGE);
                     }
                 }
             }
         });
 
-        JScrollPane scrollPane = new JScrollPane(notesList);
+        loginPanel.add(titleLabel);
+        loginPanel.add(Box.createRigidArea(new Dimension(0, 30)));
+        loginPanel.add(usernameField);
+        loginPanel.add(Box.createRigidArea(new Dimension(0, 15)));
+        loginPanel.add(passwordField);
+        loginPanel.add(Box.createRigidArea(new Dimension(0, 30)));
+        loginPanel.add(loginButton);
+        loginPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        loginPanel.add(registerButton);
 
-        JButton logoutButton = new JButton("Logout");
-        logoutButton.addActionListener(e -> cardLayout.show(cardPanel, "Login"));
+        cardPanel.add(loginPanel, "Login");
+    }
 
-        JButton addButton = new JButton("+");
-        addButton.setFont(new Font("Arial", Font.BOLD, 20));
-        addButton.setBackground(new Color(70, 130, 180));
-        addButton.setForeground(Color.WHITE);
-        addButton.setFocusPainted(false);
+    private static void createTeamSelectionScreen() {
+        JPanel teamPanel = new JPanel(new BorderLayout());
+        teamPanel.setBackground(DARK_BLACK);
 
-        addButton.addActionListener(e -> {
-            String title = JOptionPane.showInputDialog(frame, "Enter note title:", "New Note", JOptionPane.PLAIN_MESSAGE);
-            if (title != null && !title.trim().isEmpty()) {
-                String content = JOptionPane.showInputDialog(frame, "Enter note content:", "Note Content", JOptionPane.PLAIN_MESSAGE);
-                String formattedTitle = title + "\n" + java.time.LocalDate.now() + "\nJust Now";
-                notesModel.addElement(formattedTitle);
-                noteDetails.put(formattedTitle, content != null ? content : "");
+        JLabel titleLabel = new JLabel("Select Your Team", SwingConstants.CENTER);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        titleLabel.setForeground(MEDIUM_BLUE);
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
+
+        JList<String> teamList = new JList<>(teamsModel);
+        teamList.setCellRenderer(new TeamListCellRenderer());
+        teamList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        teamList.setBackground(LIGHT_BLACK);
+        teamList.setForeground(WHITE);
+        
+        teamList.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent evt) {
+                if (evt.getClickCount() == 2) {
+                    String selectedTeam = teamList.getSelectedValue();
+                    if (selectedTeam != null) {
+                        loadTeamNotes(selectedTeam);
+                        cardLayout.show(cardPanel, "Notes");
+                    }
+                }
             }
         });
 
-        JPanel bottomPanel = new JPanel(new BorderLayout());
-        bottomPanel.add(logoutButton, BorderLayout.WEST);
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        buttonPanel.add(addButton);
-        bottomPanel.add(buttonPanel, BorderLayout.EAST);
+        JButton createTeamBtn = createStyledButton("Create New Team", MEDIUM_BLUE);
+        createTeamBtn.addActionListener(e -> showCreateTeamDialog());
 
-        homePanel.add(topPanel, BorderLayout.NORTH);
-        homePanel.add(scrollPane, BorderLayout.CENTER);
-        homePanel.add(bottomPanel, BorderLayout.SOUTH);
+        JButton logoutBtn = createStyledButton("Logout", DARK_BLUE);
+        logoutBtn.addActionListener(e -> {
+            currentUser = null;
+            cardLayout.show(cardPanel, "Login");
+        });
 
-        cardPanel.add(homePanel, "Home");
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        buttonPanel.setBackground(DARK_BLACK);
+        buttonPanel.add(createTeamBtn);
+        buttonPanel.add(Box.createRigidArea(new Dimension(20, 0)));
+        buttonPanel.add(logoutBtn);
+
+        teamPanel.add(titleLabel, BorderLayout.NORTH);
+        teamPanel.add(new JScrollPane(teamList), BorderLayout.CENTER);
+        teamPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+        cardPanel.add(teamPanel, "Teams");
+    }
+
+    private static void createNotesScreen() {
+        JPanel notesPanel = new JPanel(new BorderLayout());
+        notesPanel.setBackground(DARK_BLACK);
+
+        JLabel titleLabel = new JLabel("Team Notes", SwingConstants.CENTER);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        titleLabel.setForeground(MEDIUM_BLUE);
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(15, 0, 15, 0));
+
+        JList<String> notesList = new JList<>(notesModel);
+        notesList.setCellRenderer(new NoteListCellRenderer());
+        notesList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        notesList.setBackground(LIGHT_BLACK);
+        notesList.setForeground(WHITE);
+        
+        notesList.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent evt) {
+                if (evt.getClickCount() == 2) {
+                    String selectedNote = notesList.getSelectedValue();
+                    if (selectedNote != null) {
+                        showNoteDetail(selectedNote.split("\n")[0]);
+                    }
+                }
+            }
+        });
+
+        JButton addNoteBtn = createStyledButton("Add Note", MEDIUM_BLUE);
+        addNoteBtn.addActionListener(e -> showAddNoteDialog());
+
+        JButton backBtn = createStyledButton("Back to Teams", DARK_BLUE);
+        backBtn.addActionListener(e -> cardLayout.show(cardPanel, "Teams"));
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        buttonPanel.setBackground(DARK_BLACK);
+        buttonPanel.add(addNoteBtn);
+        buttonPanel.add(Box.createRigidArea(new Dimension(20, 0)));
+        buttonPanel.add(backBtn);
+
+        notesPanel.add(titleLabel, BorderLayout.NORTH);
+        notesPanel.add(new JScrollPane(notesList), BorderLayout.CENTER);
+        notesPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+        cardPanel.add(notesPanel, "Notes");
     }
 
     private static void createNoteDetailScreen() {
         JPanel detailPanel = new JPanel(new BorderLayout());
+        detailPanel.setName("NoteDetail");
+        detailPanel.setBackground(DARK_BLACK);
 
-        JButton backButton = new JButton("← Back");
-        backButton.addActionListener(e -> cardLayout.show(cardPanel, "Home"));
+        // Top panel with back button and title
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.setBackground(DARK_BLACK);
+        JButton backButton = createStyledButton("← Back", MEDIUM_BLUE);
+        backButton.addActionListener(e -> cardLayout.show(cardPanel, "Notes"));
+        
+        JPanel titlePanel = new JPanel(new BorderLayout());
+        titlePanel.setBackground(DARK_BLACK);
+        JLabel noteTitleLabel = new JLabel("", SwingConstants.LEFT);
+        noteTitleLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        noteTitleLabel.setForeground(WHITE);
+        
+        JButton editTitleButton = createStyledButton("✎", MEDIUM_BLUE);
+        editTitleButton.setMargin(new Insets(0, 0, 0, 0));
+        editTitleButton.addActionListener(e -> {
+            String currentTitle = noteTitleLabel.getText();
+            String newTitle = JOptionPane.showInputDialog(frame, "Edit note title:", currentTitle);
+            if (newTitle != null && !newTitle.trim().isEmpty() && !newTitle.equals(currentTitle)) {
+                // Update note title logic here
+            }
+        });
 
+        titlePanel.add(noteTitleLabel, BorderLayout.CENTER);
+        titlePanel.add(editTitleButton, BorderLayout.EAST);
+        
+        topPanel.add(backButton, BorderLayout.WEST);
+        topPanel.add(titlePanel, BorderLayout.CENTER);
+
+        // Note content area
         JTextArea noteContentArea = new JTextArea();
-        noteContentArea.setEditable(false);
+        noteContentArea.setEditable(true);
         noteContentArea.setLineWrap(true);
         noteContentArea.setWrapStyleWord(true);
         noteContentArea.setFont(new Font("Arial", Font.PLAIN, 16));
-        noteContentArea.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        noteContentArea.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(MEDIUM_BLUE),
+            BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
+        noteContentArea.setBackground(LIGHT_BLACK);
+        noteContentArea.setForeground(WHITE);
+        noteContentArea.setCaretColor(WHITE);
 
         JScrollPane contentScroll = new JScrollPane(noteContentArea);
+        contentScroll.setBorder(BorderFactory.createEmptyBorder());
+        contentScroll.getViewport().setBackground(LIGHT_BLACK);
 
-        detailPanel.add(backButton, BorderLayout.NORTH);
+        // Bottom panel with save button
+        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        bottomPanel.setBackground(DARK_BLACK);
+        
+        JButton saveButton = createStyledButton("Save Changes", MEDIUM_BLUE);
+        saveButton.addActionListener(e -> {
+            // Save note changes logic here
+            showMessage("Note saved successfully!", "Saved", JOptionPane.INFORMATION_MESSAGE);
+        });
+
+        bottomPanel.add(saveButton);
+        
+        detailPanel.add(topPanel, BorderLayout.NORTH);
         detailPanel.add(contentScroll, BorderLayout.CENTER);
+        detailPanel.add(bottomPanel, BorderLayout.SOUTH);
 
         cardPanel.add(detailPanel, "NoteDetail");
     }
 
-    private static void showNoteDetail(String noteKey) {
-        Component[] components = cardPanel.getComponents();
-        for (Component comp : components) {
-            if (comp instanceof JPanel && cardPanel.getLayout() instanceof CardLayout) {
-                JScrollPane scrollPane = (JScrollPane) ((JPanel) comp).getComponent(1);
-                JTextArea area = (JTextArea) scrollPane.getViewport().getView();
-                area.setText(noteDetails.getOrDefault(noteKey, "No content available"));
+    private static void createTeamManagementScreen() {
+        JPanel managementPanel = new JPanel(new BorderLayout());
+        managementPanel.setBackground(DARK_BLACK);
+        
+        JLabel titleLabel = new JLabel("Team Management", SwingConstants.CENTER);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        titleLabel.setForeground(MEDIUM_BLUE);
+        
+        managementPanel.add(titleLabel, BorderLayout.CENTER);
+        cardPanel.add(managementPanel, "TeamManagement");
+    }
+
+    private static void showCreateTeamDialog() {
+        JTextField teamNameField = new JTextField();
+        teamNameField.setBackground(LIGHT_BLACK);
+        teamNameField.setForeground(WHITE);
+
+        Object[] message = {
+            "Team Name:", teamNameField
+        };
+
+        int option = JOptionPane.showConfirmDialog(frame, message, "Create New Team", 
+            JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+        if (option == JOptionPane.OK_OPTION && !teamNameField.getText().trim().isEmpty()) {
+            Team newTeam = new Team(teamNameField.getText().trim());
+            newTeam.memberIds.add(currentUser.username);
+            teams.put(newTeam.id, newTeam);
+            currentUser.teamIds.add(newTeam.id);
+            refreshTeamsList();
+            showMessage("Team created successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+        }
+    }
+
+    private static void showAddNoteDialog() {
+        JTextField titleField = new JTextField();
+        titleField.setBackground(LIGHT_BLACK);
+        titleField.setForeground(WHITE);
+
+        JTextArea contentArea = new JTextArea(5, 20);
+        contentArea.setBackground(LIGHT_BLACK);
+        contentArea.setForeground(WHITE);
+        contentArea.setLineWrap(true);
+        JScrollPane contentScroll = new JScrollPane(contentArea);
+
+        Object[] message = {
+            "Title:", titleField,
+            "Content:", contentScroll
+        };
+
+        int option = JOptionPane.showConfirmDialog(frame, message, "Add New Note", 
+            JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+        if (option == JOptionPane.OK_OPTION && !titleField.getText().trim().isEmpty()) {
+            Note newNote = new Note(titleField.getText().trim(), contentArea.getText(), currentUser.username);
+            currentTeam.notes.put(newNote.id, newNote);
+            refreshNotesList();
+            showMessage("Note added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+        }
+    }
+
+    private static void loadTeamNotes(String teamName) {
+        notesModel.clear();
+        for (Team team : teams.values()) {
+            if (team.name.equals(teamName)) {
+                currentTeam = team;
+                for (Note note : team.notes.values()) {
+                    notesModel.addElement(note.title + "\n" + note.lastModified + "\nBy: " + note.author);
+                }
                 break;
             }
         }
-        cardLayout.show(cardPanel, "NoteDetail");
+    }
+
+    private static void showNoteDetail(String noteTitle) {
+        if (currentTeam != null) {
+            for (Note note : currentTeam.notes.values()) {
+                if (note.title.equals(noteTitle)) {
+                    // Find the detail panel and update it
+                    for (Component comp : cardPanel.getComponents()) {
+                        if (comp instanceof JPanel && "NoteDetail".equals(((JPanel) comp).getName())) {
+                            JPanel detailPanel = (JPanel) comp;
+                            
+                            // Update title
+                            JPanel topPanel = (JPanel) detailPanel.getComponent(0);
+                            JPanel titlePanel = (JPanel) topPanel.getComponent(1);
+                            JLabel titleLabel = (JLabel) titlePanel.getComponent(0);
+                            titleLabel.setText(note.title);
+                            
+                            // Update content
+                            JScrollPane scrollPane = (JScrollPane) detailPanel.getComponent(1);
+                            JTextArea contentArea = (JTextArea) scrollPane.getViewport().getView();
+                            contentArea.setText(note.content);
+                            contentArea.putClientProperty("noteId", note.id);
+                            
+                            break;
+                        }
+                    }
+                    cardLayout.show(cardPanel, "NoteDetail");
+                    break;
+                }
+            }
+        }
+    }
+
+    private static void refreshTeamsList() {
+        teamsModel.clear();
+        if (currentUser != null) {
+            for (String teamId : currentUser.teamIds) {
+                Team team = teams.get(teamId);
+                if (team != null) {
+                    teamsModel.addElement(team.name);
+                }
+            }
+        }
+    }
+
+    private static void refreshNotesList() {
+        notesModel.clear();
+        if (currentTeam != null) {
+            for (Note note : currentTeam.notes.values()) {
+                notesModel.addElement(note.title + "\n" + note.lastModified + "\nBy: " + note.author);
+            }
+        }
+    }
+
+    private static void showMessage(String message, String title, int messageType) {
+        JOptionPane.showMessageDialog(frame, message, title, messageType);
+    }
+
+    // Custom cell renderers
+    static class TeamListCellRenderer extends DefaultListCellRenderer {
+        public Component getListCellRendererComponent(JList<?> list, Object value, int index, 
+                                                    boolean isSelected, boolean cellHasFocus) {
+            super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+            
+            setBackground(isSelected ? SELECTION_BLUE : LIGHT_BLACK);
+            setForeground(WHITE);
+            setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+            setFont(new Font("Arial", Font.BOLD, 16));
+            
+            return this;
+        }
+    }
+
+    static class NoteListCellRenderer extends DefaultListCellRenderer {
+        public Component getListCellRendererComponent(JList<?> list, Object value, int index, 
+                                                    boolean isSelected, boolean cellHasFocus) {
+            super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+            
+            String text = value.toString();
+            String[] parts = text.split("\n");
+            
+            if (parts.length >= 3) {
+                setText("<html><b>" + parts[0] + "</b><br>" + 
+                       "<font size='-1' color='#AAAAAA'>" + parts[1] + " • " + parts[2] + "</font></html>");
+            }
+            
+            setBackground(isSelected ? SELECTION_BLUE : LIGHT_BLACK);
+            setForeground(WHITE);
+            setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+            
+            return this;
+        }
+    }
+
+    private static JButton createStyledButton(String text, Color bgColor) {
+        JButton button = new JButton(text);
+        button.setBackground(bgColor);
+        button.setForeground(WHITE);
+        button.setFocusPainted(false);
+        button.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(bgColor.darker()),
+            BorderFactory.createEmptyBorder(5, 15, 5, 15)
+        ));
+        return button;
     }
 }
